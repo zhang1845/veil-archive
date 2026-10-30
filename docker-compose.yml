@@ -29,6 +29,8 @@ x-backend-runtime: &backend-runtime
     SMS_PROVIDER: disabled
     INVITE_CODES: ""
     ENABLE_PAID_MODEL_CALLS: ${ENABLE_PAID_MODEL_CALLS:-false}
+    ENABLE_CREATIVE_WORKER: "false"
+    RUN_DATABASE_MIGRATIONS: "false"
     FUSION_SOURCE_BUNDLE_DIR: /private-data/source-bundles
     FUSION_CREATIVE_JOB_DIR: /private-data/creative-jobs
     SPEECH_INPUT_STATE_DIR: /private-data/speech-input
@@ -74,7 +76,9 @@ services:
   backend:
     <<: *backend-runtime
     restart: unless-stopped
-    command: ["sh", "-c", "alembic -c src/db/migrations/alembic.ini upgrade head && exec python main.py"]
+    environment:
+      <<: *backend-environment
+      RUN_DATABASE_MIGRATIONS: "true"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8010/health', timeout=3)"]
       interval: 10s

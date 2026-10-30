@@ -1,0 +1,6 @@
+# The only root-context image is deploy/Dockerfile.proxy.
+# Backend and frontend use their own subdirectory build contexts.
+**
+!deploy/
+!deploy/Caddyfile
+!deploy/Dockerfile.proxy

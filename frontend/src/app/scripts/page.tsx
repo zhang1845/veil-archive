@@ -131,12 +131,17 @@ export default function ScriptsPage() {
               </p>
             )}
             <div className="mt-4 flex flex-wrap gap-3">
-              {sessionExpired ? (
+              {sessionExpired || loadFailed ? (
                 <>
-                  <Link className="btn-primary" href="/login">
-                    重新登录
+                  <Link className="btn-primary" href="/player-login?next=%2Fscripts">
+                    登录玩家账号
                   </Link>
-                  {loadFailed && (
+                  {!sessionExpired && (
+                    <button className="btn-secondary" disabled={busy} onClick={() => void load()}>
+                      重新加载
+                    </button>
+                  )}
+                  {loadFailed && sessionExpired && (
                     <button
                       className="btn-secondary"
                       disabled={busy}

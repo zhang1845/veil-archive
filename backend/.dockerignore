@@ -7,6 +7,8 @@ docs/
 scripts/*
 !scripts/seed_featured_scripts.py
 !scripts/creative_worker.py
+!scripts/container_start.py
+!scripts/bootstrap_account.py
 ai_agent.log
 *.pyc
 .github/

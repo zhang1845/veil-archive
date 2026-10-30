@@ -47,7 +47,7 @@ export default function RecordsPage() {
         {offline && (
           <p role="alert" className="mt-6 text-sm text-danger">
             暂时无法读取手记，请检查登录状态和后端连接。
-            <Link href="/login" className="ml-3 underline">
+            <Link href="/player-login?next=%2Frecords" className="ml-3 underline">
               重新登录原账号
             </Link>
           </p>

@@ -25,4 +25,5 @@ COPY . .
 
 EXPOSE 8010
 
+ENTRYPOINT ["python", "scripts/container_start.py"]
 CMD ["python", "main.py"]

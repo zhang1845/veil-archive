@@ -1,0 +1,19 @@
+# Optional only: selected explicitly after configuring real model credentials.
+# Secrets remain on the deployment host and are never baked into an image.
+services:
+  backend:
+    volumes:
+      - type: bind
+        source: ./.env
+        target: /app/.env
+        read_only: true
+        bind:
+          create_host_path: false
+  creative-worker:
+    volumes:
+      - type: bind
+        source: ./.env
+        target: /app/.env
+        read_only: true
+        bind:
+          create_host_path: false

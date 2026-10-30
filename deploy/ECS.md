@@ -1,10 +1,8 @@
 # 火山引擎 ECS 部署
 
-1. 准备安装了 Docker Engine 与 Compose 插件的 ECS，安全组只开放 80/443；数据库和 Redis 端口不要对公网开放。
-2. 复制 `.env.example` 为 `.env`，生成强随机 `SECRET_KEY` 和数据库密码，填入服务端 `DEEPSEEK_API_KEY`。有域名时将 `SITE_ADDRESS` 设为域名并解析到 ECS 公网 IP，Caddy 会自动申请 HTTPS 证书。
-3. 执行 `docker compose up -d --build`。首次启动自动运行 Alembic 迁移。
-4. 使用 `docker compose ps` 和 `curl https://你的域名/health` 验收；用 `docker compose logs -f backend` 排错。
-5. PostgreSQL 数据卷应位于独立云盘。用 cron 每日执行 `deploy/backup-postgres.sh` 并将备份同步到对象存储，定期演练恢复。
+使用完整前后端Compose方案，步骤与生产边界见 [生产部署](README.md)。安全组只开放80/443，数据库和Redis不映射公网端口。
 
-恢复示例：`docker compose exec -T db pg_restore -U jubensha -d jubensha --clean --if-exists < backup.dump`。
+首次部署使用独立数据库和专用生产配置；不要覆盖已有开发机 `.env`。默认不开模型费用或worker，不需要为了启动网站填写旧全AI模拟器的模型密钥。先验收生产安全检查、Alembic迁移、HTTPS和独立账号，再处理正式剧本发布。
+
+数据库备份之外还要备份与候选版本对应的私有来源、核验报告和创作账本。仅在隔离目标与恢复备份均核实后执行恢复，不提供直接覆盖现有生产库的默认清库命令。
 

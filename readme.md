@@ -118,3 +118,5 @@ cd frontend && npm run dev
 ## 许可证
 
 [MIT](LICENSE)
+
+腾讯云完整部署操作见 [服务器部署指南](deploy/TENCENT_CLOUD.md)。
