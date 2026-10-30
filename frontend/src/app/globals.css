@@ -298,7 +298,7 @@
         #0c111400 75%,
         #0c11143b 100%
       ),
-      url("/images/veil-manor-night.png");
+      var(--archive-scene-image);
     background-size: cover;
     background-position:
       center,
@@ -738,7 +738,7 @@
     overflow: hidden;
     background:
       linear-gradient(0deg, #0b1218ed, #0c151ab0),
-      url("/images/veil-manor-night.png") 72% center / cover;
+      var(--archive-scene-image) 72% center / cover;
   }
   .login-story h2 {
     font-family: var(--font-display);
@@ -1026,7 +1026,7 @@
         #0c111440 80%,
         #0c111499 100%
       ),
-      url("/images/veil-manor-night.png");
+      var(--archive-scene-image);
     background-position:
       center,
       center,

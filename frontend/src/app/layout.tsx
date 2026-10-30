@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import type { CSSProperties } from "react";
+import { siteAsset } from "@/lib/config";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,7 +17,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body style={{ "--archive-scene-image": `url("${siteAsset("/images/veil-manor-night.png")}")` } as CSSProperties}>
+        {children}
+      </body>
     </html>
   );
 }

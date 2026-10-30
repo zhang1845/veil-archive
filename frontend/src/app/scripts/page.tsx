@@ -6,10 +6,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BookOpen, Users } from "lucide-react";
 import { anonymousLogin, ensureSession, saveToken } from "@/services/auth";
 import { createSession, listReleases } from "@/services/play";
-import { errorCode, isSessionExpired } from "@/lib/http";
+import { errorCode, http, isSessionExpired } from "@/lib/http";
 import { newKey } from "@/lib/id";
 import type { Release } from "@/types/api";
 import { SiteHeader, SiteFooter } from "@/components/brand/SiteHeader";
+import { TrialNotice } from "@/components/play/TrialNotice";
 
 export default function ScriptsPage() {
   const router = useRouter();
@@ -33,7 +34,6 @@ export default function ScriptsPage() {
     setLoadFailed(false);
     setSessionExpired(false);
     try {
-      await ensureSession();
       setReleases(await listReleases());
     } catch (err) {
       setLoadFailed(true);
@@ -48,6 +48,7 @@ export default function ScriptsPage() {
     return () => clearTimeout(timer);
   }, [load]);
   const release = releases.find((r) => r.id === selected);
+  const hasPublicPreview = releases.some((r) => r.public_preview);
   const browseAsGuest = async () => {
     if (busy) return;
     setBusy(true);
@@ -70,6 +71,10 @@ export default function ScriptsPage() {
     setError("");
     setSessionExpired(false);
     try {
+      await ensureSession();
+      // A protected read renews an expired access token before the one-shot
+      // create. Browsing the public catalogue never creates an identity.
+      await http.get("/api/auth/me");
       const storageKey = `opening:${release.id}:${character}`;
       if (
         !pending.current ||
@@ -106,8 +111,9 @@ export default function ScriptsPage() {
           </p>
           <h1>未启封的故事，等你入局。</h1>
           <p>
-            从一份剧本开始，以一个角色的目光，走进迷雾深处。其余角色，由 AI
-            为你演绎。
+            {hasPublicPreview
+              ? "从一份剧本开始，以一个角色的目光，走进迷雾深处。公开试玩可阅读私本、搜证与体验结局，AI 对话未开启。"
+              : "从一份剧本开始，以一个角色的目光，走进迷雾深处。其余角色，由 AI 为你演绎。"}
           </p>
         </div>
         <label className="mt-8 block max-w-md text-sm">
@@ -196,7 +202,12 @@ export default function ScriptsPage() {
                     <span className="font-mono text-xs text-muted">
                       卷宗 {String(r.id).padStart(3, "0")}
                     </span>
-                    {r.local_trial && (
+                    {r.public_preview && (
+                      <span className="ml-3 inline-block border border-accent/40 px-2 py-1 text-xs text-accent">
+                        公开试玩
+                      </span>
+                    )}
+                    {!r.public_preview && r.local_trial && (
                       <span className="ml-3 inline-block border border-accent/40 px-2 py-1 text-xs text-accent">
                         {r.local_trial.label}
                       </span>
@@ -209,6 +220,11 @@ export default function ScriptsPage() {
                     <p className="mt-2 text-xs text-muted">
                       版次 {r.content_version}
                     </p>
+                    {r.public_preview && (
+                      <p className="mt-2 text-xs leading-6 text-muted">
+                        原创测试剧本 · 未完成模型审核 · AI 对话关闭
+                      </p>
+                    )}
                   </button>
                 ))}
               {!releases.some((r) =>
@@ -222,7 +238,10 @@ export default function ScriptsPage() {
               {release && (
                 <>
                   <p className="text-sm text-muted">{release.title}</p>
-                  {release.local_trial && (
+                  {release.public_preview && (
+                    <TrialNotice publicPreview={release.public_preview} />
+                  )}
+                  {!release.public_preview && release.local_trial && (
                     <p className="border-l-2 border-accent/50 pl-3 text-xs leading-6 text-muted">
                       {release.local_trial.notice}
                     </p>

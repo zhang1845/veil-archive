@@ -196,6 +196,10 @@ export const usePlaySessionStore = create<PlaySessionState>((set, get) => {
     askQuestion: async (characterId, question) => {
       const { play, pending, busy } = get();
       if (!play || pending || busy) return false;
+      if (play.public_preview || play.local_trial) {
+        set({ error: "当前试玩未开启 AI 对话。可继续搜证、公开发言和推进阶段。" });
+        return false;
+      }
       return execute({
         playId: play.play_id,
         kind: "ask",

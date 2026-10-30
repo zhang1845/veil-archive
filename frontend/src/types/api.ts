@@ -26,8 +26,18 @@ export interface LocalTrial {
   ai_dialogue_available: false;
 }
 
+/** Explicit public test manifest, distinct from a local-only trial or formal release. */
+export interface PublicPreview {
+  label: string;
+  notice: string;
+  model_audit_complete: false;
+  manual_audit_complete?: false;
+  ai_dialogue_available: false;
+}
+
 export interface Release {
   local_trial?: LocalTrial;
+  public_preview?: PublicPreview;
   id: number;
   version_id: string;
   title: string;
@@ -47,6 +57,8 @@ export interface Material {
 }
 
 export interface OpeningSession {
+  local_trial?: LocalTrial;
+  public_preview?: PublicPreview;
   session_id: string;
   release_id: number;
   version_id: string;
@@ -88,6 +100,7 @@ export interface DialogueEntry {
 
 export interface PlayView {
   local_trial?: LocalTrial;
+  public_preview?: PublicPreview;
   play_id: string;
   status: "TEXT_PLAY" | "SETTLED";
   settled: boolean;

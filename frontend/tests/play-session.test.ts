@@ -195,3 +195,23 @@ test("pending request survives reload and explicit refusal releases the command"
   assert.equal(session.getItem("pending-command:play-qa"), null);
   assert.equal(axios.isAxiosError(new AxiosError()), true);
 });
+
+test("public preview and local trial both refuse new AI asks before network dispatch", async () => {
+  for (const field of ["public_preview", "local_trial"] as const) {
+    usePlaySessionStore.setState({
+      play: {
+        ...view,
+        [field]: {
+          label: field === "public_preview" ? "公开试玩版" : "本地试玩版",
+          notice: "AI 对话关闭",
+          model_audit_complete: false,
+          ai_dialogue_available: false,
+        },
+      },
+    });
+    assert.equal(await usePlaySessionStore.getState().askQuestion("first", "当时在哪里？"), false);
+    assert.match(usePlaySessionStore.getState().error ?? "", /未开启 AI 对话/);
+    assert.equal(usePlaySessionStore.getState().pending, null);
+  }
+  assert.equal(requests.length, 0);
+});

@@ -7,6 +7,7 @@ import { BookOpen, Flag, RefreshCw } from "lucide-react";
 import { usePlaySessionStore } from "@/stores/playSessionStore";
 import type { Material } from "@/types/api";
 import { SiteHeader } from "@/components/brand/SiteHeader";
+import { TrialNotice } from "./TrialNotice";
 
 export function PlayRoom() {
   const router = useRouter();
@@ -48,7 +49,8 @@ export function PlayRoom() {
     router.replace(`/play?play_id=${encodeURIComponent(play.play_id)}`);
   }, [play, playId, router]);
   const disabled = busy || !!pending;
-  const activeChannel = play?.local_trial ? "speak" : channel;
+  const textTrial = !!(play?.public_preview || play?.local_trial);
+  const activeChannel = textTrial ? "speak" : channel;
   const others = characters.filter((c) => c.id !== play?.selected_character_id);
   const selectedTarget = others.some((c) => c.id === target) ? target : "";
   const myName =
@@ -170,15 +172,7 @@ export function PlayRoom() {
         </div>
       </header>
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-8">
-        {play.local_trial && (
-          <aside
-            className="panel border-accent/40 text-sm leading-7"
-            role="note"
-          >
-            <strong className="text-accent">{play.local_trial.label}</strong>
-            <p className="mt-1 text-muted">{play.local_trial.notice}</p>
-          </aside>
-        )}
+        <TrialNotice publicPreview={play.public_preview} localTrial={play.local_trial} />
         {error && (
           <div
             role="alert"
@@ -282,7 +276,7 @@ export function PlayRoom() {
             ))}
             {!play.discussion?.entries.length && !play.dialogue?.length && (
               <p className="text-sm text-muted">
-                {play.local_trial
+                {textTrial
                   ? "还没有交流记录。搜证可取得封存口供，也可以在下方记录你的推理。"
                   : "还没有交流记录。阅读私本后，可以向其他角色询问线索。"}
               </p>
@@ -310,7 +304,7 @@ export function PlayRoom() {
                     disabled={disabled}
                     onChange={(e) => setChannel(e.target.value)}
                   >
-                    <option value="ask" disabled={!!play.local_trial}>
+                    <option value="ask" disabled={textTrial}>
                       向角色询问
                     </option>
                     <option value="speak">公开发言</option>
@@ -373,8 +367,8 @@ export function PlayRoom() {
                     : "公开发言"}
               </button>
               <p className="text-xs text-muted">
-                {play.local_trial
-                  ? "公开发言会保存到本局。搜齐四处地点后，可推进到终局并揭晓真相。"
+                {textTrial
+                  ? "公开发言会保存到本局。完成当前调查后，可按阶段指引推进并揭晓真相。"
                   : "公开发言会保存到本局；向角色询问会调用模型，按本局预算计费。"}
               </p>
             </form>

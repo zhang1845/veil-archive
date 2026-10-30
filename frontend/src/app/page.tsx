@@ -11,11 +11,12 @@ import {
   FolderOpen,
   MoveUpRight,
 } from "lucide-react";
-import { ensureSession } from "@/services/auth";
+import { hasToken } from "@/services/auth";
 import { listLibrary, listReleases } from "@/services/play";
-import type { LibraryItem } from "@/types/api";
+import type { LibraryItem, PublicPreview } from "@/types/api";
 import { SiteHeader, SiteFooter } from "@/components/brand/SiteHeader";
 import { ArchiveArtwork } from "@/components/brand/ArchiveArtwork";
+import { TrialNotice } from "@/components/play/TrialNotice";
 
 const steps = [
   {
@@ -41,18 +42,23 @@ const steps = [
 export default function HomePage() {
   const [recent, setRecent] = useState<LibraryItem | null>(null);
   const [count, setCount] = useState<number | null>(null);
+  const [publicPreview, setPublicPreview] = useState<PublicPreview>();
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        await ensureSession();
-        const [library, releases] = await Promise.all([
-          listLibrary(0, 1),
+        const [library, catalog] = await Promise.allSettled([
+          hasToken() ? listLibrary(0, 1) : Promise.resolve(null),
           listReleases(),
         ]);
         if (!cancelled) {
-          setRecent(library.items[0] ?? null);
-          setCount(releases.length);
+          if (library.status === "fulfilled") {
+            setRecent(library.value?.items[0] ?? null);
+          }
+          if (catalog.status === "fulfilled") {
+            setCount(catalog.value.length);
+            setPublicPreview(catalog.value.find((release) => release.public_preview)?.public_preview);
+          }
         }
       } catch {
         /* Navigation remains available if the catalog cannot be read. */
@@ -86,10 +92,13 @@ export default function HomePage() {
               <p className="hero-description">
                 一扇未关的门，一句对不上的证词。
                 <br />
-                选一个身份走进迷局，与 AI 角色交锋。
+                {publicPreview
+                  ? "选一个身份走进迷局，核对每一份封存口供。"
+                  : "选一个身份走进迷局，与 AI 角色交锋。"}
                 <br />
                 在所有人掩藏的秘密里，找到最后一块拼图。
               </p>
+              <TrialNotice publicPreview={publicPreview} />
               <div className="hero-actions">
                 <Link href="/scripts" className="btn-primary hero-primary">
                   进入剧本档案
@@ -110,7 +119,11 @@ export default function HomePage() {
               </div>
               <div className="hero-footnote">
                 <Fingerprint size={16} aria-hidden />
-                <span>你掌握一个角色的秘密。其余角色，由 AI 演绎。</span>
+                <span>
+                  {publicPreview
+                    ? "你掌握一个角色的秘密。通过搜证，还原其他角色的证词。"
+                    : "你掌握一个角色的秘密。其余角色，由 AI 演绎。"}
+                </span>
               </div>
             </div>
             <ArchiveArtwork />
@@ -134,7 +147,11 @@ export default function HomePage() {
                     <step.icon size={17} aria-hidden />
                     {step.title}
                   </h2>
-                  <p>{step.text}</p>
+                  <p>
+                    {publicPreview && step.number === "02"
+                      ? "调查物证，阅读封存口供，找出说法中的矛盾。"
+                      : step.text}
+                  </p>
                 </div>
               </article>
             ))}

@@ -281,3 +281,17 @@ test("domain errors retain their code while transport errors have a readable mes
   );
   assert.equal(errorCode(refused(config)), "登录状态已失效，请重新登录。");
 });
+
+test("CloudBase setup, publication and safe-cancel errors explain the next action in Chinese", () => {
+  const config = { url: "/api/admin/fusion/creative-jobs" } as InternalAxiosRequestConfig;
+  for (const [code, text] of [
+    ["CLOUDBASE_MODEL_DISABLED", "尚未配置创作模型"],
+    ["CLOUDBASE_SOURCE_NOT_REGISTERED", "尚未登记来源"],
+    ["PUBLICATION_GATE_BLOCKED", "审核条件尚未全部满足"],
+    ["JOB_CANCEL_LEASE_ACTIVE", "任务正在执行"],
+    ["JOB_CANCEL_RESULT_UNKNOWN", "暂不能取消或重复执行"],
+    ["JOB_CANCEL_REVISION_CONFLICT", "刷新后再取消"],
+  ]) {
+    assert.ok(errorCode(refused(config, 409, { detail: code })).includes(text));
+  }
+});
