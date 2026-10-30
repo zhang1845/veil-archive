@@ -1,0 +1,7 @@
+# 雾夜悬疑场景素材
+
+生成方式为内置 imagegen，未使用 CLI/API 回退。最终素材保存在 `frontend/public/images/veil-manor-night.png`，由 CSS 用作首页与登录页的环境背景。画面不是剧本封面或已发布内容。
+
+## 最终提示词
+
+Use case: stylized-concept. Asset type: cinematic background photograph for a Chinese single-player murder mystery website named The Veil Archive. Generate a finished very wide landscape image, approximately 16:9. Scene: a forgotten three-story 1920s manor at the end of a wet stone footpath, wrought iron gate in foreground, bare branches, dense rolling ground fog, overgrown foliage, a single dim amber window on the upper floor and a small cold lamp by the entrance. No people. Suspenseful psychological mystery, elegant detective noir, restrained tension, realistic film still, fine 35mm film grain, tangible wet stone, subtle light rays in blue gray mist, desaturated midnight teal and charcoal, warm light only from that solitary window. Composition: the manor and strongest architectural details occupy the right half, left 40 percent is nearly black atmospheric trees and fog with ample quiet negative space for a website heading; preserve readable silhouette of the manor without crushing everything to pure black. Low key cinematic lighting with rich atmospheric depth. No text, letters, numbers, watermarks, logos, UI, posters or borders. No gore, monsters or jump scares. This is environmental website artwork rather than a playable script cover.

@@ -1,0 +1,33 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.data/
+tests/
+docs/
+scripts/*
+!scripts/seed_featured_scripts.py
+!scripts/creative_worker.py
+ai_agent.log
+*.pyc
+.github/
+Dockerfile
+.dockerignore
+
+# 真实 API 冒烟与探针脚本：只用于人工验证，正式运行路径不依赖它们
+# （配置加载已抽到 src/fusion/provider_config.py）。
+# tests/test_production_imports_no_scaffolding.py 会持续保证这一点成立。
+src/fusion/*_smoke.py
+src/fusion/*_probe.py
+
+# Secrets and machine data never enter a build context.
+.env
+.env.*
+!.env.example
+.git/
+private-data/
+backups/
+*.db
+*.sqlite*
+*.dump
+*.log
+.DS_Store

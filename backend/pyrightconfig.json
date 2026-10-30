@@ -1,0 +1,47 @@
+{
+    "include": [
+        "src",
+        "tests"
+    ],
+    "exclude": [
+        "**/__pycache__",
+        ".venv",
+        ".git"
+    ],
+    "ignore": [
+        "src/agents/ai_agent.py"
+    ],
+    "defineConstant": {
+        "DEBUG": true
+    },
+    "venvPath": ".",
+    "venv": ".venv",
+    "stubPath": "typings",
+    "reportMissingImports": false,
+    "reportMissingTypeStubs": false,
+    "reportUnknownParameterType": false,
+    "reportUnknownArgumentType": false,
+    "reportUnknownVariableType": false,
+    "reportUnknownMemberType": false,
+    "reportMissingTypeArgument": false,
+    "reportInvalidTypeVarUse": true,
+    "reportCallInDefaultInitializer": false,
+    "reportPropertyTypeMismatch": true,
+    "reportUntypedFunctionDecorator": true,
+    "reportUntypedClassDecorator": true,
+    "reportUntypedBaseClass": true,
+    "reportUntypedNamedTuple": true,
+    "reportPrivateUsage": true,
+    "reportConstantRedefinition": true,
+    "reportIncompatibleMethodOverride": true,
+    "reportIncompatibleVariableOverride": true,
+    "reportOverlappingOverload": true,
+    "reportMissingSuperCall": false,
+    "reportUninitializedInstanceVariable": true,
+    "reportInvalidStringEscapeSequence": true,
+    "reportUnsupportedDunderAll": true,
+    "reportUnusedCallResult": false,
+    "reportUnusedCoroutine": true,
+    "reportDeprecated": false,
+    "reportAny": "none"
+}

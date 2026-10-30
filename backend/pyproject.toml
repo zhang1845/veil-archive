@@ -1,0 +1,41 @@
+[project]
+name = "veil-archive"
+version = "0.1.0"
+description = "雾幕档案 · 单人互动推理与 AI 剧本创作"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "langchain>=0.1.0",
+    "langchain-openai>=0.1.0",
+    "openai>=1.0.0",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "websockets>=12.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+    "dashscope>=1.23.8",
+    # 数据库相关
+    "asyncpg>=0.29.0",
+    "sqlalchemy[asyncio]>=2.0.0",
+    # 存储相关
+    "minio>=7.2.0",
+    "aiofiles>=23.2.0",
+    "python-multipart>=0.0.6",
+    "aiohttp>=3.12.13",
+    "alembic>=1.16.4",
+    "psycopg[binary]>=3.2.3",
+    "redis>=5.2.0",
+    "pwdlib[argon2,bcrypt]>=0.3.0",
+    "python-jose[cryptography]>=3.5.0",
+    "email-validator>=2.2.0",
+    "jsonschema>=4.25.0",
+    "gradio-client>=1.11.1",
+    "pillow>=12,<13",
+]
+
+[dependency-groups]
+dev = [
+    "debugpy>=1.8.0",
+    "pyright>=1.1.300",
+    "pytest>=8.4.1",
+]

@@ -1,0 +1,41 @@
+{
+  "name": "veil-archive-web",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@11.17.0",
+  "engines": {
+    "node": ">=20.9.0 <25",
+    "npm": ">=10 <12"
+  },
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 8009",
+    "lint": "eslint src",
+    "check": "eslint src && tsc --noEmit --incremental false",
+    "generate-api": "npx openapi-typescript-codegen --input http://localhost:8010/openapi.json --output ./src/client --client axios",
+    "test": "node --import tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "axios": "^1.12.2",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.525.0",
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tailwind-merge": "^3.3.1",
+    "zustand": "^5.0.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "^20",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "eslint": "9.39.2",
+    "eslint-config-next": "16.3.3",
+    "openapi-typescript-codegen": "0.31.0",
+    "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}

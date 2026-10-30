@@ -1,0 +1,21 @@
+{$SITE_ADDRESS::80} {
+    encode zstd gzip
+
+    # These routes remain private even if backend configuration changes.
+    @api_docs path /docs /docs/* /redoc /redoc/* /openapi.json
+    respond @api_docs 404
+
+    @backend path /api/* /health /static/*
+    handle @backend {
+        reverse_proxy {$BACKEND_UPSTREAM:backend:8010}
+    }
+    handle {
+        reverse_proxy {$FRONTEND_UPSTREAM:frontend:8009}
+    }
+
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+        -Server
+    }
+}

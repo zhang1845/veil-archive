@@ -1,0 +1,128 @@
+name: ai-jubensha-fusion
+
+x-backend-runtime: &backend-runtime
+  image: veil-archive-backend:local
+  build: ./backend
+  init: true
+  env_file:
+    - path: .env
+      required: false
+  environment: &backend-environment
+    ENV: production
+    DB_HOST: db
+    DB_PORT: "5432"
+    DB_NAME: ${DB_NAME:-jubensha}
+    DB_USER: ${DB_USER:-jubensha}
+    DB_PASSWORD: ${DB_PASSWORD:?Set a dedicated random DB_PASSWORD}
+    SECRET_KEY: ${SECRET_KEY:?Set a random SECRET_KEY of at least 32 characters}
+    REDIS_URL: redis://redis:6379/0
+    HOST: 0.0.0.0
+    PORT: "8010"
+    CORS_ORIGINS: ${CORS_ORIGINS:-}
+    FILE_STORAGE: dir
+    ALLOW_ANONYMOUS_ACCESS: "false"
+    ALLOW_LEGACY_REGISTRATION: "false"
+    ENABLE_LOCAL_TRIALS: "false"
+    ENABLE_LEGACY_ADMIN: "false"
+    ENABLE_MEDIA_FEATURES: "false"
+    ENABLE_PUBLIC_API_DOCS: "false"
+    SMS_PROVIDER: disabled
+    INVITE_CODES: ""
+    ENABLE_PAID_MODEL_CALLS: ${ENABLE_PAID_MODEL_CALLS:-false}
+    FUSION_SOURCE_BUNDLE_DIR: /private-data/source-bundles
+    FUSION_CREATIVE_JOB_DIR: /private-data/creative-jobs
+    SPEECH_INPUT_STATE_DIR: /private-data/speech-input
+    DOUBAO_ASR_STATE_DIR: /private-data/speech-input
+  volumes:
+    - backend_static:/app/backend/static
+    - backend_data:/app/backend/.data
+    - backend_private:/private-data
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      BACKEND_UPSTREAM: backend:8010
+      FRONTEND_UPSTREAM: frontend:8009
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend: { condition: service_healthy }
+      frontend: { condition: service_healthy }
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: /
+    init: true
+    restart: unless-stopped
+    environment:
+      HOSTNAME: 0.0.0.0
+      PORT: "8009"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8009/').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  backend:
+    <<: *backend-runtime
+    restart: unless-stopped
+    command: ["sh", "-c", "alembic -c src/db/migrations/alembic.ini upgrade head && exec python main.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8010/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  # This process can spend model credits. It never starts in the default stack.
+  creative-worker:
+    <<: *backend-runtime
+    profiles: [creative]
+    restart: "no"
+    command: ["python", "scripts/creative_worker.py", "--allow-paid", "--watch"]
+    depends_on:
+      backend: { condition: service_healthy }
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-jubensha}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set a dedicated random DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-jubensha}
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb", "--maxmemory-policy", "noeviction"]
+    volumes: ["redisdata:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
+  redisdata:
+  backend_static:
+  backend_data:
+  backend_private:
+  caddy_data:
+  caddy_config:

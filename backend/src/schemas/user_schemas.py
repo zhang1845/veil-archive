@@ -1,0 +1,219 @@
+"""用户相关的Pydantic模式"""
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from typing import Optional, List
+from datetime import datetime
+import re
+
+PHONE_PATTERN = re.compile(r'^1[3-9]\d{9}$')
+
+class SmsCodeRequest(BaseModel):
+    phone: str = Field(..., description="中国大陆手机号")
+
+    @field_validator('phone')
+    @classmethod
+    def validate_phone(cls, value):
+        if not PHONE_PATTERN.fullmatch(value.strip()):
+            raise ValueError('请输入有效的中国大陆手机号')
+        return value.strip()
+
+class SmsCodeResponse(BaseModel):
+    message: str
+    expires_in: int = 300
+    retry_after: int = 60
+    dev_code: Optional[str] = None
+
+class PhoneLogin(BaseModel):
+    phone: str = Field(..., description="中国大陆手机号")
+    code: str = Field(..., min_length=6, max_length=6, description="短信验证码")
+    invite_code: Optional[str] = Field(None, max_length=64, description="首次登录邀请码")
+    nickname: Optional[str] = Field(None, min_length=1, max_length=50, description="首次登录昵称")
+
+    @field_validator('phone')
+    @classmethod
+    def validate_phone(cls, value):
+        if not PHONE_PATTERN.fullmatch(value.strip()):
+            raise ValueError('请输入有效的中国大陆手机号')
+        return value.strip()
+
+    @field_validator('code')
+    @classmethod
+    def validate_code(cls, value):
+        if not value.isdigit():
+            raise ValueError('验证码必须为 6 位数字')
+        return value
+
+# 用户注册
+class UserRegister(BaseModel):
+    """用户注册模式"""
+    username: str = Field(..., min_length=3, max_length=50, description="用户名")
+    email: EmailStr = Field(..., description="邮箱地址")
+    password: str = Field(..., min_length=6, max_length=100, description="密码")
+    nickname: Optional[str] = Field(None, max_length=50, description="昵称")
+    
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, v):
+        if not v.isalnum() and '_' not in v:
+            raise ValueError('用户名只能包含字母、数字和下划线')
+        return v
+    
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v):
+        if len(v) < 6:
+            raise ValueError('密码长度至少6位')
+        return v
+
+# 用户登录
+class UserLogin(BaseModel):
+    """用户登录模式"""
+    username: str = Field(..., description="用户名或邮箱")
+    password: str = Field(..., description="密码")
+
+# 用户信息更新
+class UserUpdate(BaseModel):
+    """用户信息更新模式"""
+    nickname: Optional[str] = Field(None, max_length=50, description="昵称")
+    bio: Optional[str] = Field(None, max_length=500, description="个人简介")
+    avatar_url: Optional[str] = Field(None, description="头像URL")
+
+# 密码修改
+class PasswordChange(BaseModel):
+    """密码修改模式"""
+    old_password: str = Field(..., description="旧密码")
+    new_password: str = Field(..., min_length=6, max_length=100, description="新密码")
+    
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password(cls, v):
+        if len(v) < 6:
+            raise ValueError('新密码长度至少6位')
+        return v
+
+# 用户响应模式
+class UserResponse(BaseModel):
+    """用户响应模式"""
+    id: int
+    username: str
+    email: str
+    phone: Optional[str] = None
+    nickname: Optional[str]
+    avatar_url: Optional[str]
+    bio: Optional[str]
+    is_active: bool
+    is_verified: bool
+    is_admin: bool
+    last_login_at: Optional[datetime]
+    created_at: datetime
+    updated_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)
+
+# 用户简要信息
+class UserBrief(BaseModel):
+    """用户简要信息模式"""
+    id: int
+    username: str
+    nickname: Optional[str]
+    avatar_url: Optional[str]
+    
+    model_config = ConfigDict(from_attributes=True)
+
+# 认证令牌
+class Token(BaseModel):
+    """认证令牌模式"""
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    # 访问令牌有效期收敛到小时级后，用续期凭条在后台换发新令牌，
+    # 使用者不会因此频繁被要求重新登录。
+    refresh_token: Optional[str] = None
+    user: UserResponse
+
+class RefreshRequest(BaseModel):
+    """用续期凭条换取新的访问令牌"""
+    refresh_token: str = Field(..., min_length=1, description="登录时下发的续期凭条")
+
+# 令牌数据
+class TokenData(BaseModel):
+    """令牌数据模式"""
+    user_id: Optional[int] = None
+    username: Optional[str] = None
+
+# 游戏会话相关模式
+class GameSessionCreate(BaseModel):
+    """创建游戏会话模式"""
+    script_id: int = Field(..., description="剧本ID")
+    max_players: int = Field(4, ge=2, le=8, description="最大玩家数")
+
+class GameSessionResponse(BaseModel):
+    """游戏会话响应模式"""
+    id: int
+    script_id: int
+    host_user_id: int
+    current_players: int
+    max_players: int
+    status: str
+    created_at: datetime
+    started_at: Optional[datetime]
+    ended_at: Optional[datetime]
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class GameSessionDetail(BaseModel):
+    """游戏会话详情模式"""
+    id: int
+    script_id: int
+    host_user_id: int
+    current_players: int
+    max_players: int
+    status: str
+    created_at: datetime
+    started_at: Optional[datetime]
+    ended_at: Optional[datetime]
+    # 可以添加更多详细信息
+    
+    model_config = ConfigDict(from_attributes=True)
+
+# 游戏历史记录
+class GameHistoryResponse(BaseModel):
+    """游戏历史记录响应模式"""
+    id: int
+    session_id: str
+    script_id: int
+    script_title: str
+    host_user_id: int
+    status: str
+    created_at: datetime
+    started_at: Optional[datetime]
+    ended_at: Optional[datetime]
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class PlayerJoinRequest(BaseModel):
+    """玩家加入请求模式"""
+    session_id: int
+    user_id: int
+
+class PlayerStatusUpdate(BaseModel):
+    """玩家状态更新模式"""
+    user_id: int
+    status: str  # ready, not_ready, left, etc.
+
+# 游戏会话删除相关模式
+class GameSessionDeleteRequest(BaseModel):
+    """删除游戏会话请求模式"""
+    session_ids: List[str] = Field(..., min_length=1, description="要删除的会话ID列表")
+
+class GameSessionDeleteFailedItem(BaseModel):
+    """删除失败的会话项"""
+    session_id: str
+    error: str
+
+class GameSessionDeleteResponse(BaseModel):
+    """删除游戏会话响应模式"""
+    success: List[str] = Field(default_factory=list, description="成功删除的会话ID列表")
+    failed: List[GameSessionDeleteFailedItem] = Field(default_factory=list, description="删除失败的会话列表")
+    total_requested: int = Field(..., description="请求删除的总数")
+    total_success: int = Field(..., description="成功删除的总数")
+    total_failed: int = Field(..., description="删除失败的总数")
