@@ -25,7 +25,10 @@ if (cloudbaseStaticExport) {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   basePath: siteBasePath,
-  env: { NEXT_PUBLIC_SITE_BASE_PATH: siteBasePath },
+  env: {
+    NEXT_PUBLIC_SITE_BASE_PATH: siteBasePath,
+    NEXT_PUBLIC_CLOUDBASE_FREE_MODE: cloudbaseStaticExport ? "true" : "false",
+  },
   output: cloudbaseStaticExport ? "export" : "standalone",
   ...(cloudbaseStaticExport
     ? { trailingSlash: true, images: { unoptimized: true } }

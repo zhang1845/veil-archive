@@ -7,6 +7,7 @@ import * as api from "@/services/admin";
 import { SiteHeader } from "@/components/brand/SiteHeader";
 import { errorCode } from "@/lib/http";
 import { newKey } from "@/lib/id";
+import { CLOUDBASE_FREE_MODE } from "@/lib/config";
 import {
   activeCreativeStates,
   creativeStateLabel,
@@ -206,10 +207,22 @@ export default function AdminConsole() {
         {loading && <p role="status">读取工作台…</p>}
         {tab === "generate" && (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+            {CLOUDBASE_FREE_MODE && (
+              <aside id="cloudbase-creative-status" className="panel border-accent/50 lg:col-span-2" role="note">
+                <h2 className="text-lg text-accent">当前免费试玩环境 · AI 创作尚未接通</h2>
+                <p className="mt-2 text-sm leading-7 text-muted">
+                  AI 创作、自动修稿与模型复审尚未接通，暂时不能创建生成任务。你仍可查看已有候选并完成人工审核。
+                </p>
+                <button type="button" className="btn-secondary mt-4" onClick={() => setTab("review")}>
+                  查看候选与人工审核
+                </button>
+              </aside>
+            )}
             <form
               className="panel space-y-5"
               onSubmit={(e) => {
                 e.preventDefault();
+                if (CLOUDBASE_FREE_MODE) return;
                 void run(async () => {
                   await api.createCreativeJob({
                     idempotency_key: generationKey.current,
@@ -322,24 +335,33 @@ export default function AdminConsole() {
               </p>
               <button
                 disabled={
-                  busy || loading || !title.trim() || theme.trim().length < 5
+                  CLOUDBASE_FREE_MODE || busy || loading || !title.trim() || theme.trim().length < 5
                 }
+                aria-describedby={CLOUDBASE_FREE_MODE ? "cloudbase-creative-status" : undefined}
                 className="btn-primary"
               >
                 {busy ? "提交中…" : "创建生成任务"}
               </button>
               <details className="text-sm text-muted">
                 <summary className="cursor-pointer">生成服务运行说明</summary>
-                <p className="mt-3 leading-relaxed">
-                  需先配置百炼模型密钥与单价，并由本机生成服务处理队列。在项目目录执行下方命令并保持运行。
-                </p>
-                <code className="mt-3 block break-all rounded bg-inset p-3">
-                  backend/.venv/bin/python backend/scripts/creative_worker.py
-                  --allow-paid --watch
-                </code>
-                <p className="mt-2">
-                  新任务会自动处理；每一轮修稿使用独立版本，历史稿件与审核意见保留。中断或用量未知时停止，原调用不会自动重试，需核对后处理。
-                </p>
+                {CLOUDBASE_FREE_MODE ? (
+                  <p className="mt-3 leading-relaxed">
+                    当前云端试玩仅开放候选查看与人工审核，AI 创作和自动修稿暂不可用。下方保留已有创作记录。
+                  </p>
+                ) : (
+                  <>
+                    <p className="mt-3 leading-relaxed">
+                      需先配置百炼模型密钥与单价，并由本机生成服务处理队列。在项目目录执行下方命令并保持运行。
+                    </p>
+                    <code className="mt-3 block break-all rounded bg-inset p-3">
+                      backend/.venv/bin/python backend/scripts/creative_worker.py
+                      --allow-paid --watch
+                    </code>
+                    <p className="mt-2">
+                      新任务会自动处理；每一轮修稿使用独立版本，历史稿件与审核意见保留。中断或用量未知时停止，原调用不会自动重试，需核对后处理。
+                    </p>
+                  </>
+                )}
               </details>
             </form>
             <section>
@@ -347,7 +369,9 @@ export default function AdminConsole() {
               <div className="space-y-3">
                 {!loading && !jobs.length && (
                   <div className="panel text-sm text-muted">
-                    还没有任务。从左侧写下第一个故事想法。
+                    {CLOUDBASE_FREE_MODE
+                      ? "当前环境暂无创作任务。可切换至审核与发布，查看已有候选。"
+                      : "还没有任务。从左侧写下第一个故事想法。"}
                   </div>
                 )}
                 {jobs.map((job) => (
